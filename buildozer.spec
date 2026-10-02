@@ -23,6 +23,9 @@ android.archs = arm64-v8a, armeabi-v7a
 # 无敏感权限需求
 android.permissions =
 
+# CI 无人值守编译：自动接受 Android SDK 许可协议
+android.accept_sdk_license = True
+
 [buildozer]
 
 log_level = 2

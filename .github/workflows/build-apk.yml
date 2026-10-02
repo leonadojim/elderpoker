@@ -30,6 +30,8 @@ jobs:
 
       - name: Build APK (official buildozer docker image)
         run: |
+          # 缓存里的venv可能带有损坏的pip（之前失败run的残留），删掉强制重建
+          rm -rf .buildozer/android/platform/build-arm64-v8a/build/venv
           ok=0
           for i in 1 2 3; do
             if docker run --rm \

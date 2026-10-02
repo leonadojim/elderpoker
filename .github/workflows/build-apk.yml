@@ -51,3 +51,31 @@ jobs:
         with:
           name: elderpoker-apk
           path: bin/*.apk
+
+  # 编译成功后自动在安卓模拟器里启动，抓取崩溃日志
+  test-on-emulator:
+    needs: build
+    runs-on: macos-latest   # Apple Silicon，可硬件加速 arm64 模拟器
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: elderpoker-apk
+
+      - name: Run app on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: arm64-v8a
+          target: default
+          script: |
+            adb install -r eldercards-1.0.0-arm64-v8a-debug.apk
+            adb shell am start -n org.elderpoker.eldercards/org.kivy.android.PythonActivity
+            sleep 30
+            adb shell pidof org.elderpoker.eldercards && echo "APP_RUNNING" || echo "APP_NOT_RUNNING"
+            adb logcat -d > logcat.txt
+
+      - name: Upload logcat
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-logcat
+          path: logcat.txt

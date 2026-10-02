@@ -18,13 +18,24 @@ jobs:
           key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
           restore-keys: ${{ runner.os }}-buildozer-
 
+      - name: Ensure Android SDK platform 33 on runner
+        run: |
+          ls "$ANDROID_HOME/platforms" || true
+          if [ ! -d "$ANDROID_HOME/platforms/android-33" ]; then
+            sudo "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-33" "build-tools;34.0.0"
+          fi
+
       - name: Build APK (official buildozer docker image)
         run: |
           ok=0
           for i in 1 2 3; do
-            if docker run --rm -v "$GITHUB_WORKSPACE:/home/user/hostcwd" \
+            if docker run --rm \
+              -v "$GITHUB_WORKSPACE:/home/user/hostcwd" \
+              -v "$ANDROID_HOME:/opt/android-sdk" \
+              -e ANDROIDSDK=/opt/android-sdk \
+              -e ANDROID_HOME=/opt/android-sdk \
               kivy/buildozer:latest android debug; then ok=1; break; fi
-            echo "== 第 $i 次尝试失败（多为谷歌SDK仓库波动），20秒后重试 =="
+            echo "== 第 $i 次尝试失败，20秒后重试 =="
             sleep 20
           done
           [ "$ok" = 1 ]

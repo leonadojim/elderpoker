@@ -26,6 +26,10 @@ android.archs = arm64-v8a
 # 无敏感权限需求
 android.permissions =
 
+# 锁定编译目标API（默认36当日谷歌仓库不稳）
+android.api = 33
+android.minapi = 24
+
 # CI 无人值守编译：自动接受 Android SDK 许可协议
 android.accept_sdk_license = True
 

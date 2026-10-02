@@ -460,13 +460,16 @@ class ShengjiGame:
                 return False, f"手里没有这张牌"
             hand_copy.remove(c)
 
+        # 第一手或新一轮
+        is_first = (len(self.current_trick) == 0)
+
         # 判断牌型
         hand = get_shengji_hand_type(cards, self.power_eval)
         if hand is None:
-            return False, "不合法的牌型"
-
-        # 第一手或新一轮
-        is_first = (len(self.current_trick) == 0)
+            if is_first:
+                return False, "不合法的牌型"
+            # 跟牌垫牌允许混花色（不构成标准牌型，打不过任何标准牌型）
+            hand = ("mixed", 0, len(cards), False)
 
         if not is_first:
             # 检查跟牌规则
@@ -655,24 +658,27 @@ class ShengjiGame:
         first_type, first_power, first_len, first_trump = first_hand
         n = len(first_cards)
 
+        # 首家主牌时，主牌视为"同花色"（跟主）
+        if lead_suit is None:
+            same_suit_cards = [c for c in cards if self.power_eval.is_trump(c)]
+        else:
+            same_suit_cards = [c for c in cards if not self.power_eval.is_trump(c) and c[1] == lead_suit]
+
         legal = []
 
-        # 1. 尝试同花色同牌型且能大过（正跟）
-        same_suit_cards = [c for c in cards if not self.power_eval.is_trump(c) and c[1] == lead_suit]
-        if lead_suit and same_suit_cards:
-            combos = self._find_combinations(same_suit_cards, n, first_type)
-            for combo in combos:
+        # 1. 同花色（或同为主牌）同牌型：有对必跟对、有拖必跟拖，不要求大过
+        for combo in self._find_combinations(same_suit_cards, n, first_type):
+            h = get_shengji_hand_type(combo, self.power_eval)
+            if h:
+                legal.append(combo)
+
+        # 2. 首家为副牌时，可用主牌同牌型毙（须大过）
+        if lead_suit is not None:
+            trump_cards = [c for c in cards if self.power_eval.is_trump(c)]
+            for combo in self._find_combinations(trump_cards, n, first_type):
                 h = get_shengji_hand_type(combo, self.power_eval)
                 if h and can_beat_shengji(h, first_hand):
                     legal.append(combo)
-
-        # 2. 尝试主牌毙（同牌型且更大）
-        trump_cards = [c for c in cards if self.power_eval.is_trump(c)]
-        combos = self._find_combinations(trump_cards, n, first_type)
-        for combo in combos:
-            h = get_shengji_hand_type(combo, self.power_eval)
-            if h and can_beat_shengji(h, first_hand):
-                legal.append(combo)
 
         # 3. 垫牌：任意n张（V1简化，垫牌总是允许，不比较大小）
         if not legal:

@@ -337,14 +337,16 @@ def draw_messages_shengji(surface, messages, names=None):
 
 
 def draw_captured_cards(surface, captured, scores):
-    """顶部展示双方吃到的分牌（5/10/K）。庄家方在左上，抓分方在右上（右对齐）。"""
+    """顶部展示双方吃到的分牌（5/10/K）。庄家方在左上，抓分方在右上（右对齐）。
+    最多逐张展示 32 张（2 行 × 16 张），超出部分在末尾牌角上叠加 '+N' 角标。"""
     font = get_font(FONT_SIZE_SMALL)
-    card_w, card_h = 44, 64
-    step = 10
-    max_per_row = 24
-    label_y = 6
+    card_w, card_h = 55, 80
+    step = 14
+    max_per_row = 16
+    max_shown = 32
+    label_y = 8
     row_y0 = 48
-    row_gap = 34   # 两行时底缘 146，不超过顶部出牌区（y=220）
+    row_gap = 40   # 两行时底缘 168，不超过顶部出牌区（y=220）
     # (标签, 队伍, 左缘, 右缘, 是否右对齐)
     groups = [
         ("庄家方", 0, 300, 860, False),   # 信息面板（x≤290）之右
@@ -358,12 +360,26 @@ def draw_captured_cards(surface, captured, scores):
         surface.blit(surf, (tx, label_y))
         if not cards:
             continue
-        rows = [cards[i:i + max_per_row] for i in range(0, len(cards), max_per_row)][:2]
+        shown = cards[:max_shown]
+        extra = len(cards) - len(shown)
+        rows = [shown[i:i + max_per_row] for i in range(0, len(shown), max_per_row)]
+        last_x = x0
         for r, row in enumerate(rows):
             y = row_y0 + r * row_gap
             for i, card in enumerate(row):
                 x = x1 - card_w - i * step if right_align else x0 + i * step
                 draw_card(surface, card, x, y, size=(card_w, card_h))
+                last_x = x
+        if extra > 0:
+            # 在末尾牌（最右一张）的左下角叠加 '+N' 角标
+            badge = font.render(f"+{extra}", True, COLOR_TEXT_YELLOW)
+            bx = (x1 - card_w if right_align else last_x) + 2
+            by = row_y0 + (len(rows) - 1) * row_gap + card_h - badge.get_height() - 2
+            bg = pygame.Rect(bx - 2, by - 2, badge.get_width() + 4, badge.get_height() + 4)
+            s = pygame.Surface((bg.width, bg.height), pygame.SRCALPHA)
+            s.fill((0, 0, 0, 200))
+            surface.blit(s, bg.topleft)
+            surface.blit(badge, (bx, by))
 
 
 def draw_bottom_cards(surface, bottom_cards, center_y=240):

@@ -45,20 +45,16 @@ class HumanPlayerShengji:
 
     def find_hint(self, game):
         """
-        找到一个提示。
+        找到一个提示（与AI共用选牌策略）。
         返回 (success, indices) 或 (False, [])
         """
+        from shengji.ai import choose_lead, choose_follow
         player = 0
-        legal = game.get_legal_plays(player)
+        legal = [p for p in game.get_legal_plays(player) if p]
         if not legal:
             return False, []
 
-        # 找一手最小的牌
-        def sort_key(p):
-            return (len(p), max(game.power_eval.power(c) for c in p))
-
-        legal.sort(key=sort_key)
-        chosen = legal[0]
+        chosen = choose_follow(game, legal) if game.current_trick else choose_lead(game, legal)
         cards = game.player_cards[player]
         indices = []
         used = set()

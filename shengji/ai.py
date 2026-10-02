@@ -4,8 +4,47 @@
 import random
 import sys
 sys.path.insert(0, '..')
-from common.cards import JOKERS
+from common.cards import JOKERS, is_score_card
 from shengji.engine import get_shengji_hand_type, can_beat_shengji
+
+
+def choose_lead(game, legal):
+    """首家领出选牌（AI 与人类提示共用）。
+    优先出副牌的组合牌（拖拉机/四条/三条/对子）：张数最多且最大牌力最小者；
+    没有合适的副牌组合则出最小单张（副牌优先）；主牌组合保留不轻易拆。
+    """
+    power = game.power_eval
+
+    def max_power(p):
+        return max(power.power(c) for c in p)
+
+    def has_trump(p):
+        return any(power.is_trump(c) for c in p)
+
+    side_combos = [p for p in legal if len(p) >= 2 and not has_trump(p)]
+    if side_combos:
+        side_combos.sort(key=lambda p: (-len(p), max_power(p)))
+        return side_combos[0]
+
+    singles = [p for p in legal if len(p) == 1]
+    side_singles = [p for p in singles if not has_trump(p)]
+    pool = side_singles or singles or legal
+    pool.sort(key=max_power)
+    return pool[0]
+
+
+def choose_follow(game, legal):
+    """跟牌选牌（AI 与人类提示共用）。
+    最小代价：先尽量少送分牌（5/10/K），再取最大牌力最小者。
+    候选已由 engine.get_legal_plays 保证满足跟牌型规则（有对必跟对等）。
+    """
+    power = game.power_eval
+
+    def cost(p):
+        score_cards = sum(1 for c in p if is_score_card(c))
+        return (score_cards, max(power.power(c) for c in p))
+
+    return min(legal, key=cost)
 
 
 class ShengjiAI:
@@ -59,7 +98,7 @@ class ShengjiAI:
         返回 (action, cards)
         """
         cards = game.player_cards[self.player_id]
-        legal = game.get_legal_plays(self.player_id)
+        legal = [p for p in game.get_legal_plays(self.player_id) if p]
 
         if not legal:
             # 没有合法出牌，出最小牌的n张（避免单张 fallback 导致卡死）
@@ -70,16 +109,8 @@ class ShengjiAI:
                     return "play", sorted_cards[:n]
             return "pass", []
 
-        # 过滤空列表并排序：优先出小牌、少张的
-        legal = [p for p in legal if p]
-        if not legal:
-            if cards:
-                return "play", [cards[0]]
-            return "pass", []
-        
-        def sort_key(p):
-            return (len(p), max(game.power_eval.power(c) for c in p))
-
-        legal.sort(key=sort_key)
-        chosen = legal[0]
+        if game.current_trick:
+            chosen = choose_follow(game, legal)
+        else:
+            chosen = choose_lead(game, legal)
         return "play", chosen

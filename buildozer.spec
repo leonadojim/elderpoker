@@ -14,6 +14,9 @@ version = 1.0.0
 
 requirements = python3==3.13.7,hostpython3==3.13.7,pygame==2.6.1,pyjnius==1.8.0
 
+# 本地覆盖配方（p4a 内置 pygame 配方版本过旧）
+p4a.local_recipes = ./p4a-recipes
+
 orientation = landscape
 fullscreen = 1
 

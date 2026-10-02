@@ -261,6 +261,7 @@ class ShengjiGame:
         self.trick_complete = False  # 本轮是否已出满，等待结算
         self.trick_scores = []     # 每轮的得分记录
         self.scores = [0, 0]       # [庄家方得分, 抓分方得分]（仅计分牌）
+        self.captured = [[], []]   # 双方吃到的分牌本体 [庄家方, 抓分方]
         self.winner_team = -1      # 0=庄家方赢, 1=抓分方赢
         self.messages = []
         self.bid_history = []      # 叫主记录
@@ -560,6 +561,10 @@ class ShengjiGame:
         # 确定赢家的队伍
         win_team = 0 if win_player in (self.dealer, (self.dealer + 2) % 4) else 1
         self.scores[win_team] += trick_score
+        for p, cards, _ in self.current_trick:
+            for c in cards:
+                if is_score_card(c):
+                    self.captured[win_team].append(c)
 
         self.add_message(f"玩家{win_player} 赢本轮，得{trick_score}分")
 
@@ -588,7 +593,9 @@ class ShengjiGame:
         # 抠底：最后一轮赢家用主牌扣底，底牌分数翻倍
         koudi_score = 0
         for c in self.bottom_cards:
-            koudi_score += is_score_card(c)
+            if is_score_card(c):
+                koudi_score += is_score_card(c)
+                self.captured[last_winner_team].append(c)
 
         # 简化：最后一轮赢家队伍获得底牌分数
         self.scores[last_winner_team] += koudi_score

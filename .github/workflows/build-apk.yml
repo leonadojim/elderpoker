@@ -18,8 +18,8 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool \
-            pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake \
+          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool libltdl-dev \
+            build-essential pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake \
             libffi-dev libssl-dev automake gettext
 
       - name: Install buildozer

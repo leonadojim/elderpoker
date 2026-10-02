@@ -18,7 +18,7 @@ from shengji.ai import ShengjiAI
 from shengji.renderer import (
     draw_player_bottom, draw_player_left, draw_player_right, draw_player_top,
     draw_play_area_shengji, draw_info_panel_shengji, draw_messages_shengji,
-    draw_bottom_cards, draw_bottom_cards_mini
+    draw_bottom_cards, draw_bottom_cards_mini, draw_captured_cards
 )
 from shengji.player import HumanPlayerShengji
 
@@ -186,7 +186,9 @@ class ShengjiApp:
             self._speak_play(hand, cards)
             self.human.clear_selection()
             self.human_deadline = None
-            self.next_ai_time = pygame.time.get_ticks() + 5000
+            # 出满一轮时留 2.5 秒展示，再结算清桌
+            delay = 2500 if self.game.trick_complete else 5000
+            self.next_ai_time = pygame.time.get_ticks() + delay
         else:
             self.set_status(msg)
 
@@ -280,12 +282,13 @@ class ShengjiApp:
 
         # 人类出牌30秒倒计时（放在AI逻辑之前，不受next_ai_time阻塞）
         if self.game.phase == PHASE_PLAYING and self.game.current_player == 0:
-            # 一轮已出满且轮到人类：立即结算，避免旧牌遮挡选牌、倒计时误触发
+            # 一轮已出满：等展示延迟到期再结算，让玩家看清最后一家出的牌
             if self.game.trick_complete:
-                self.game._finish_trick()
-                self.game.trick_complete = False
-                self.next_ai_time = now + 300
                 self.human_deadline = None
+                if now >= self.next_ai_time:
+                    self.game._finish_trick()
+                    self.game.trick_complete = False
+                    self.next_ai_time = now + 300
                 return
             if self.human_deadline is None:
                 self.human_deadline = now + 30000
@@ -340,13 +343,11 @@ class ShengjiApp:
             return
 
         if self.game.phase == PHASE_PLAYING:
-            # 本轮已出满，延迟结算，让玩家看清最后一家的牌
+            # 本轮已出满，展示延迟到期后结算（到达此处说明 now >= next_ai_time）
             if self.game.trick_complete:
-                # 轮到人类时立即结算，避免旧牌遮挡选牌
-                if self.game.current_player == 0 or now >= self.next_ai_time:
-                    self.game._finish_trick()
-                    self.game.trick_complete = False
-                    self.next_ai_time = now + 300
+                self.game._finish_trick()
+                self.game.trick_complete = False
+                self.next_ai_time = now + 300
                 return
 
             action, cards = ai.decide_play(self.game)
@@ -356,7 +357,7 @@ class ShengjiApp:
                     hand = get_shengji_hand_type(cards, self.game.power_eval)
                     self._speak_play(hand, cards)
                 # 如果本轮出满，多给一点时间看清最后一家出的牌
-                delay = 500 if self.game.trick_complete else 1500
+                delay = 2500 if self.game.trick_complete else 1500
                 self.next_ai_time = now + delay
             else:
                 self.game.pass_turn(cp)
@@ -391,6 +392,10 @@ class ShengjiApp:
         # 信息面板和消息
         draw_info_panel_shengji(self.screen, self.game, self.player_names)
         draw_messages_shengji(self.screen, self.game.messages, self.player_names)
+
+        # 双方吃到的分牌（出牌阶段）
+        if self.game.phase == PHASE_PLAYING:
+            draw_captured_cards(self.screen, self.game.captured, self.game.scores)
 
         # 按钮
         self.draw_buttons()
@@ -499,7 +504,7 @@ class ShengjiApp:
         positions = [
             (SCREEN_WIDTH // 2, 505),       # 底部（在按钮上方约1/4按钮高度）
             (80, 400),                       # 左侧
-            (SCREEN_WIDTH // 2, 170),        # 上方（上移，避免叠在出牌区上）
+            (890, 82),                       # 上方（顶部牌背行右侧，与牌背垂直居中）
             (SCREEN_WIDTH - 80, 400),        # 右侧
         ]
         if 0 <= cp < 4:

@@ -336,6 +336,36 @@ def draw_messages_shengji(surface, messages, names=None):
         surface.blit(surf, (text_x, y + i * line_h))
 
 
+def draw_captured_cards(surface, captured, scores):
+    """顶部展示双方吃到的分牌（5/10/K）。庄家方在左上，抓分方在右上（右对齐）。"""
+    font = get_font(FONT_SIZE_SMALL)
+    card_w, card_h = 33, 48
+    step = 7
+    label_y = 8
+    row_y0 = 50
+    row_gap = 50   # 两行时底缘 148，不超过顶部出牌区（y=220）和闹钟区域
+    # (标签, 队伍, 左缘, 右缘, 是否右对齐)
+    groups = [
+        ("庄家方", 0, 300, 860, False),   # 信息面板（x≤290）之右
+        ("抓分方", 1, 920, 1210, True),   # 顶部闹钟（x≤914）之右、消息面板（x=1220）之左
+    ]
+    for label, team, x0, x1, right_align in groups:
+        cards = captured[team]
+        text = f"{label} {scores[team]}分"
+        surf = font.render(text, True, COLOR_TEXT_YELLOW)
+        tx = x1 - surf.get_width() if right_align else x0
+        surface.blit(surf, (tx, label_y))
+        if not cards:
+            continue
+        max_per_row = max(1, (x1 - x0 - card_w) // step + 1)
+        rows = [cards[i:i + max_per_row] for i in range(0, len(cards), max_per_row)][:2]
+        for r, row in enumerate(rows):
+            y = row_y0 + r * row_gap
+            for i, card in enumerate(row):
+                x = x1 - card_w - i * step if right_align else x0 + i * step
+                draw_card(surface, card, x, y, size=(card_w, card_h))
+
+
 def draw_bottom_cards(surface, bottom_cards, center_y=240):
     """绘制底牌（叫主/扣底阶段，放在屏幕中央）"""
     if not bottom_cards:

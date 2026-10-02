@@ -340,13 +340,13 @@ def draw_captured_cards(surface, captured, scores):
     """顶部展示双方吃到的分牌（5/10/K）。庄家方在左上，抓分方在右上（右对齐）。
     最多逐张展示 32 张（2 行 × 16 张），超出部分在末尾牌角上叠加 '+N' 角标。"""
     font = get_font(FONT_SIZE_SMALL)
-    card_w, card_h = 64, 92
+    card_w, card_h = 56, 80
     step = 16
     max_per_row = 14
     max_shown = 28
-    label_y = 8
+    label_y = 6
     row_y0 = 48
-    row_gap = 44   # 两行时底缘 184，不超过顶部出牌区（y=220）；被压行露出点数角标
+    row_gap = card_h + 4   # 两行上下零重叠：48..128 / 132..212，底缘不超过出牌区（y=220）
     # (标签, 队伍, 左缘, 右缘, 是否右对齐)
     groups = [
         ("庄家方", 0, 300, 860, False),   # 信息面板（x≤290）之右

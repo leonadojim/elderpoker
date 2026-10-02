@@ -49,7 +49,7 @@ class ShengjiApp:
         self.back_to_menu = False
         self.game.deal()
         self._pick_nicknames()
-        self.bid_auto_timer = pygame.time.get_ticks() + 8000  # 8秒后自动翻底牌
+        self.bid_auto_timer = pygame.time.get_ticks() + 15000  # 15秒后自动翻底牌
         speak("四副牌升级，请亮主")
 
         while self.running and not self.back_to_menu:
@@ -155,7 +155,14 @@ class ShengjiApp:
             self.human.clear_selection()
             self.next_ai_time = pygame.time.get_ticks() + 5000
         else:
-            self.set_status(msg)
+            if "不能用于亮主" in msg or "级别" in msg:
+                tip = f"亮主需要当前打 {self.game.level} 的牌或王（对子、三张更大），请重新选择"
+            else:
+                tip = msg
+            self.set_status(tip)
+            speak(tip)
+            # 重置自动定主倒计时，给足重新操作的时间
+            self.bid_auto_timer = pygame.time.get_ticks() + 15000
 
     def do_pass_bid(self):
         # 玩家不亮主，交给AI
@@ -265,7 +272,7 @@ class ShengjiApp:
         self.human.clear_selection()
         self.game.deal()
         self._pick_nicknames()
-        self.bid_auto_timer = pygame.time.get_ticks() + 8000
+        self.bid_auto_timer = pygame.time.get_ticks() + 15000
         speak("新的一局")
 
     def update(self, dt):
@@ -403,18 +410,24 @@ class ShengjiApp:
         # 轮到指示
         self.draw_turn_indicator()
 
-        # 扣底阶段：实时显示已选/还需几张
+        # 叫主阶段：自动定主倒计时提示（有人亮主后自然消失）
+        if self.game.phase == PHASE_BIDDING and not self.game.bid_history:
+            remaining = max(0, (self.bid_auto_timer - pygame.time.get_ticks()) // 1000)
+            hint_font = get_font(FONT_SIZE_SMALL)
+            hint = hint_font.render(f"{remaining}秒后自动确定主花色", True, COLOR_TEXT_YELLOW)
+            self.screen.blit(hint, (SCREEN_WIDTH // 2 - hint.get_width() // 2, 450))
+
+        # 扣底阶段：实时显示选牌进度
         if self.game.phase == PHASE_DISCARD and self.game.dealer == 0:
             selected_count = len(self.human.selected_indices)
-            need = 8 - selected_count
             font = get_font(FONT_SIZE_MEDIUM)
-            if need == 0:
-                tip = "已选 8 张，请点击「扣底」"
-            elif need > 0:
-                tip = f"已选 {selected_count} 张"
+            if selected_count == 8:
+                tip = "请扣 8 张底牌（已选 8/8），可以扣底了"
+                color = (80, 255, 80)
             else:
-                tip = f"已选 {selected_count} 张，请取消 {abs(need)} 张"
-            tip_surf = font.render(tip, True, COLOR_TEXT_YELLOW)
+                tip = f"请扣 8 张底牌（已选 {selected_count}/8）"
+                color = COLOR_TEXT_YELLOW
+            tip_surf = font.render(tip, True, color)
             tip_rect = tip_surf.get_rect(center=(SCREEN_WIDTH // 2, 505))
             self.screen.blit(tip_surf, tip_rect)
 

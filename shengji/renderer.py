@@ -340,13 +340,13 @@ def draw_captured_cards(surface, captured, scores):
     """顶部展示双方吃到的分牌（5/10/K）。庄家方在左上，抓分方在右上（右对齐）。
     最多逐张展示 32 张（2 行 × 16 张），超出部分在末尾牌角上叠加 '+N' 角标。"""
     font = get_font(FONT_SIZE_SMALL)
-    card_w, card_h = 55, 80
-    step = 14
-    max_per_row = 16
-    max_shown = 32
+    card_w, card_h = 64, 92
+    step = 16
+    max_per_row = 14
+    max_shown = 28
     label_y = 8
     row_y0 = 48
-    row_gap = 40   # 两行时底缘 168，不超过顶部出牌区（y=220）
+    row_gap = 44   # 两行时底缘 184，不超过顶部出牌区（y=220）；被压行露出点数角标
     # (标签, 队伍, 左缘, 右缘, 是否右对齐)
     groups = [
         ("庄家方", 0, 300, 860, False),   # 信息面板（x≤290）之右
@@ -405,22 +405,22 @@ def draw_bottom_cards_mini(surface, bottom_cards):
     if not bottom_cards:
         return
     n = len(bottom_cards)
-    small_w, small_h = 40, 58
-    gap = 3
-    total_w = n * small_w + (n - 1) * gap
+    small_w, small_h = 64, 92
+    step = 18   # 每张横向露出约 18px
+    total_w = (n - 1) * step + small_w
 
-    # 放在右上角消息面板下方
+    # 放在右上角消息面板下方，右对齐距屏幕右缘 30px
     x = SCREEN_WIDTH - total_w - 30
-    y = 215
+    y = 205   # 底缘 297，不碰右侧 AI 名字（y=300）
 
     font = get_font(FONT_SIZE_SMALL)
     label = font.render("底牌", True, COLOR_TEXT_YELLOW)
-    # 标签竖排，放在牌左侧同一行
+    # 标签竖排，放在牌左侧同一行，垂直居中
     label_rot = pygame.transform.rotate(label, -90)
     label_x = x - label_rot.get_width() - 5
     label_y = y + (small_h - label_rot.get_height()) // 2
     surface.blit(label_rot, (label_x, label_y))
 
     for i, card in enumerate(bottom_cards):
-        cx = x + i * (small_w + gap)
+        cx = x + i * step
         draw_card(surface, card, cx, y, size=(small_w, small_h))

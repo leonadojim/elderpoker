@@ -17,7 +17,7 @@ class Pygame2Recipe(CompiledComponentsPythonRecipe):
     name = 'pygame'
 
     depends = ['sdl2', 'sdl2_image', 'sdl2_mixer', 'sdl2_ttf', 'setuptools', 'jpeg', 'png']
-    hostpython_prerequisites = ["Cython>=3.0.11,<3.2"]
+    hostpython_prerequisites = ["setuptools", "Cython>=3.0.11,<3.2"]
     call_hostpython_via_targetpython = False  # Due to setuptools
     install_in_hostpython = False
 

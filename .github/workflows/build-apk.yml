@@ -20,8 +20,14 @@ jobs:
 
       - name: Build APK (official buildozer docker image)
         run: |
-          docker run --rm -v "$GITHUB_WORKSPACE:/home/user/hostcwd" \
-            kivy/buildozer:latest android debug
+          ok=0
+          for i in 1 2 3; do
+            if docker run --rm -v "$GITHUB_WORKSPACE:/home/user/hostcwd" \
+              kivy/buildozer:latest android debug; then ok=1; break; fi
+            echo "== 第 $i 次尝试失败（多为谷歌SDK仓库波动），20秒后重试 =="
+            sleep 20
+          done
+          [ "$ok" = 1 ]
           sudo chown -R "$USER:$USER" bin .buildozer || true
 
       - name: Upload APK

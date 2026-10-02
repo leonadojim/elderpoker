@@ -1,9 +1,23 @@
 """
-老年游戏中心 - 主入口
+老友扑克 - 主入口
 """
-import pygame
-import sys
 import os
+import sys
+
+# 安卓上从第一行起把输出写入文件，便于排查闪退（平板数据线连电脑可读）
+if "ANDROID_ARGUMENT" in os.environ or "ANDROID_PRIVATE" in os.environ:
+    try:
+        _log_dir = os.environ.get("ANDROID_PUBLIC") or os.environ.get("ANDROID_PRIVATE", ".")
+        _log = open(os.path.join(_log_dir, "app.log"), "w", encoding="utf-8", buffering=1)
+        sys.stdout = _log
+        sys.stderr = _log
+        print("=== 长者扑克启动 ===")
+    except Exception:
+        pass
+
+import pygame
+
+print("pygame imported")
 
 # 确保能找到模块
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -17,12 +31,14 @@ from common.platform_compat import setup_display, present, map_pos
 class GameCenter:
     def __init__(self):
         pygame.init()
-        self.screen = setup_display("老年游戏中心 - 老人专用大字版")
+        print("pygame.init done")
+        self.screen = setup_display("老友扑克 - 老人专用大字版")
+        print("display created")
         self.clock = pygame.time.Clock()
         self.running = True
 
     def run(self):
-        speak("欢迎来到老年游戏中心")
+        speak("欢迎来到老友扑克")
         while self.running:
             dt = self.clock.tick(FPS)
             self.handle_events()
@@ -62,14 +78,14 @@ class GameCenter:
         app = DoudizhuApp(self.screen, self.clock)
         app.run()
         # 返回后重新初始化显示
-        self.screen = setup_display("老年游戏中心 - 老人专用大字版")
+        self.screen = setup_display("老友扑克 - 老人专用大字版")
         speak("返回游戏大厅")
 
     def launch_shengji(self):
         from shengji.main import ShengjiApp
         app = ShengjiApp(self.screen, self.clock)
         app.run()
-        self.screen = setup_display("老年游戏中心 - 老人专用大字版")
+        self.screen = setup_display("老友扑克 - 老人专用大字版")
         speak("返回游戏大厅")
 
     def draw(self):
@@ -79,7 +95,7 @@ class GameCenter:
 
         # 大标题
         title_font = get_font(64)
-        title = title_font.render("老年游戏中心", True, COLOR_TEXT_YELLOW)
+        title = title_font.render("老友扑克", True, COLOR_TEXT_YELLOW)
         self.screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, 100))
 
         # 副标题

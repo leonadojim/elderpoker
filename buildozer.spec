@@ -1,9 +1,9 @@
 [app]
 
 # 应用名称（显示在平板桌面）
-title = 长者扑克
+title = 老友扑克
 
-package.name = elderpoker
+package.name = eldercards
 package.domain = org.elderpoker
 
 source.dir = .

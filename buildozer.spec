@@ -30,6 +30,10 @@ android.permissions =
 android.api = 33
 android.minapi = 24
 
+# 使用CI runner预装的SDK（容器内挂载到/opt/android-sdk），
+# 绕开buildozer自带sdkmanager与谷歌仓库不兼容的问题
+android.sdk_path = /opt/android-sdk
+
 # CI 无人值守编译：自动接受 Android SDK 许可协议
 android.accept_sdk_license = True
 

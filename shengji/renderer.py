@@ -11,8 +11,8 @@ from common.cards import SUITS, JOKERS
 from shengji.engine import PHASE_ENDED
 
 # 升级专用小牌尺寸（手牌区与底牌区统一使用）
-SJ_CARD_W = 80
-SJ_CARD_H = 115
+SJ_CARD_W = 76
+SJ_CARD_H = 108
 
 # 庄家图标缓存
 _dizhu_img = None
@@ -66,8 +66,8 @@ def draw_player_bottom(surface, cards, selected_indices, power_eval):
 
     CARD_W = SJ_CARD_W
     CARD_H = SJ_CARD_H
-    ROW_GAP = 58
-    SELECT_LIFT = -22
+    ROW_GAP = 56
+    SELECT_LIFT = -15
 
     LEFT_MARGIN = 90   # 左侧给行标签留位
     RIGHT_MARGIN = 90
@@ -339,11 +339,12 @@ def draw_messages_shengji(surface, messages, names=None):
 def draw_captured_cards(surface, captured, scores):
     """顶部展示双方吃到的分牌（5/10/K）。庄家方在左上，抓分方在右上（右对齐）。"""
     font = get_font(FONT_SIZE_SMALL)
-    card_w, card_h = 33, 48
-    step = 7
-    label_y = 8
-    row_y0 = 50
-    row_gap = 50   # 两行时底缘 148，不超过顶部出牌区（y=220）和闹钟区域
+    card_w, card_h = 44, 64
+    step = 10
+    max_per_row = 24
+    label_y = 6
+    row_y0 = 48
+    row_gap = 34   # 两行时底缘 146，不超过顶部出牌区（y=220）
     # (标签, 队伍, 左缘, 右缘, 是否右对齐)
     groups = [
         ("庄家方", 0, 300, 860, False),   # 信息面板（x≤290）之右
@@ -357,7 +358,6 @@ def draw_captured_cards(surface, captured, scores):
         surface.blit(surf, (tx, label_y))
         if not cards:
             continue
-        max_per_row = max(1, (x1 - x0 - card_w) // step + 1)
         rows = [cards[i:i + max_per_row] for i in range(0, len(cards), max_per_row)][:2]
         for r, row in enumerate(rows):
             y = row_y0 + r * row_gap

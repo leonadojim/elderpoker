@@ -12,7 +12,7 @@ source.exclude_patterns = 斗地主/*,*.zip,bin/*,.github/*
 
 version = 1.0.0
 
-requirements = python3==3.13.7,pygame==2.6.1,pyjnius==1.8.0
+requirements = python3==3.13.7,hostpython3==3.13.7,pygame==2.6.1,pyjnius==1.8.0
 
 orientation = landscape
 fullscreen = 1

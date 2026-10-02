@@ -129,6 +129,51 @@ class GameCenter:
         pygame.display.flip()
 
 
+def _show_crash_screen(error_text):
+    """启动失败：把错误写到文件并显示在屏幕上（便于平板拍照反馈）"""
+    try:
+        log_path = os.path.join(os.environ.get("ANDROID_PRIVATE", "."), "crash.log")
+        with open(log_path, "w", encoding="utf-8") as f:
+            f.write(error_text)
+    except Exception:
+        pass
+    try:
+        pygame.init()
+        screen = pygame.display.set_mode((1280, 720))
+        pygame.display.set_caption("启动错误")
+        font = pygame.font.Font(None, 26)
+        lines = []
+        for raw in error_text.splitlines():
+            while len(raw) > 90:
+                lines.append(raw[:90])
+                raw = raw[90:]
+            lines.append(raw)
+        clock = pygame.time.Clock()
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type in (pygame.QUIT, pygame.MOUSEBUTTONDOWN, pygame.KEYDOWN):
+                    waiting = False
+            screen.fill((60, 0, 0))
+            y = 20
+            for line in lines[-22:]:
+                surf = font.render(line, True, (255, 255, 120))
+                screen.blit(surf, (10, y))
+                y += 30
+            hint = font.render("App failed to start. Photo this screen and report. Tap to exit.",
+                               True, (255, 255, 255))
+            screen.blit(hint, (10, 686))
+            pygame.display.flip()
+            clock.tick(15)
+    except Exception:
+        pass
+
+
 if __name__ == "__main__":
-    app = GameCenter()
-    app.run()
+    try:
+        app = GameCenter()
+        app.run()
+    except Exception:
+        import traceback
+        _show_crash_screen(traceback.format_exc())
+        raise

@@ -16,6 +16,7 @@ _voice_enabled = True
 _speak_queue = queue.Queue()
 _speak_thread = None
 _android_tts = None
+_android_tts_failed = False
 
 
 def set_voice_enabled(enabled):
@@ -36,8 +37,10 @@ def _do_speak(text):
 
 
 def _do_speak_android(text):
-    """安卓：调用系统 TTS（需平板安装中文语音数据）"""
-    global _android_tts
+    """安卓：调用系统 TTS（需平板安装中文语音数据）。非阻塞，直接入队。"""
+    global _android_tts, _android_tts_failed
+    if _android_tts_failed:
+        return
     try:
         from jnius import autoclass
         if _android_tts is None:
@@ -49,7 +52,7 @@ def _do_speak_android(text):
         TextToSpeech = autoclass("android.speech.tts.TextToSpeech")
         _android_tts.speak(text, TextToSpeech.QUEUE_ADD, None, "elderpoker")
     except Exception:
-        pass
+        _android_tts_failed = True
 
 
 def _do_speak_windows(text):
@@ -93,10 +96,15 @@ def _ensure_worker():
 
 
 def speak(text):
-    """语音播报（入队，排队播放）"""
+    """语音播报"""
     if not _voice_enabled or not text:
         return
-    if not (_is_windows or _is_android):
+    if _is_android:
+        # 安卓 TTS 本身是非阻塞的，直接在调用线程（主线程）执行，
+        # 避免部分机型在无线程 Looper 的后台线程里创建 TTS 崩溃
+        _do_speak_android(text)
+        return
+    if not _is_windows:
         return
     _ensure_worker()
     _speak_queue.put(text)

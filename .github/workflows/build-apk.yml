@@ -81,10 +81,10 @@ jobs:
       - name: Run app on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 33
-          arch: x86_64
+          api-level: 35   # Android 15，与用户的新手机同代
+          arch: x86_64    # 原生运行（APK含x86_64），不需要指令翻译
           target: google_apis
-          emulator-boot-timeout: 1800   # arm64 翻译启动慢，默认600s不够
+          emulator-boot-timeout: 1800
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics
           script: |
             adb install -r eldercards-1.0.0-arm64-v8a-debug.apk

@@ -20,8 +20,8 @@ p4a.local_recipes = ./p4a-recipes
 orientation = landscape
 fullscreen = 1
 
-# 平板主流架构（仅64位；32位会触发pyjnius源码构建导致pip环境损坏）
-android.archs = arm64-v8a
+# 64位手机/平板 + x86_64（云模拟器测试用；pyjnius两种架构均有官方wheel）
+android.archs = arm64-v8a, x86_64
 
 # 无敏感权限需求
 android.permissions =

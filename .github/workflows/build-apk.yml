@@ -109,7 +109,8 @@ jobs:
             sleep 30
             adb shell pidof org.elderpoker.eldercards && echo "APP_RUNNING" || echo "APP_NOT_RUNNING"
             adb logcat -d > logcat.txt
-            adb pull /sdcard/Android/data/org.elderpoker.eldercards/files/app.log || true
+            adb shell run-as org.elderpoker.eldercards cat files/app.log > app.log 2>/dev/null || true
+            adb shell run-as org.elderpoker.eldercards cat files/crash.log > crash.log 2>/dev/null || true
 
       - name: Upload logcat
         if: always()
@@ -119,3 +120,4 @@ jobs:
           path: |
             logcat.txt
             app.log
+            crash.log

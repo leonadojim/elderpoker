@@ -146,11 +146,16 @@ class GameCenter:
 
 
 def _show_crash_screen(error_text):
-    """启动失败：把错误写到文件并显示在屏幕上（便于平板拍照反馈）"""
+    """启动失败：把错误写到文件、打到logcat、显示在屏幕上"""
     try:
         log_path = os.path.join(os.environ.get("ANDROID_PRIVATE", "."), "crash.log")
         with open(log_path, "w", encoding="utf-8") as f:
             f.write(error_text)
+    except Exception:
+        pass
+    # 同时输出到原始stderr（logcat可见），便于远程诊断
+    try:
+        print(error_text, file=sys.__stderr__, flush=True)
     except Exception:
         pass
     try:

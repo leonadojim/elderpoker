@@ -40,6 +40,7 @@ jobs:
               -v "$ANDROID_HOME:/opt/android-sdk" \
               -e ANDROIDSDK=/opt/android-sdk \
               -e ANDROID_HOME=/opt/android-sdk \
+              -e PIP_CONSTRAINT=/home/user/hostcwd/ci-constraints.txt \
               kivy/buildozer:latest android debug; then ok=1; break; fi
             echo "== 第 $i 次尝试失败，修复venv中的pip后重试 =="
             if [ -f "$VENV/bin/python" ]; then

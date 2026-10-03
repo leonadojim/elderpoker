@@ -57,6 +57,23 @@ jobs:
     needs: build
     runs-on: ubuntu-latest   # KVM 加速 x86_64 模拟器，API30+ 镜像自带 arm64 指令翻译
     steps:
+      - name: Free disk space (保留安卓SDK，其余清理)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="STATIC_ASSIGN=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
       - uses: actions/download-artifact@v4
         with:
           name: elderpoker-apk

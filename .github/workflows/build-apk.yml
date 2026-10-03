@@ -84,6 +84,8 @@ jobs:
           api-level: 33
           arch: x86_64
           target: google_apis
+          emulator-boot-timeout: 1800   # arm64 翻译启动慢，默认600s不够
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics
           script: |
             adb install -r eldercards-1.0.0-arm64-v8a-debug.apk
             adb shell am start -n org.elderpoker.eldercards/org.kivy.android.PythonActivity

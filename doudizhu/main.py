@@ -43,8 +43,10 @@ class DoudizhuApp:
         self.pass_display = None
         self.initial_cards = [[], [], []]
         self.show_history = False
-        self.player_names = ["你", "机器人A", "机器人B"]
+        self.player_names = ["你", "玩家A", "玩家B"]
         self.back_to_menu = False
+        self.human_deadline = None  # 人类出牌倒计时截止时刻（get_ticks），None表示未启用
+        self._pick_nicknames()
 
     def set_status(self, text):
         self.status_text = text
@@ -77,6 +79,7 @@ class DoudizhuApp:
     def _pick_nicknames(self):
         picks = random.sample(AI_NICKNAMES, 2)
         self.player_names = ["你", picks[0], picks[1]]
+        self.game.player_names = self.player_names
 
     def set_difficulty(self, diff):
         self.difficulty = diff
@@ -161,6 +164,7 @@ class DoudizhuApp:
             return
         success, msg = self.game.play(0, cards)
         if success:
+            self.human_deadline = None
             hand = get_hand_type(cards)
             self._speak_hand(hand, cards)
             self.human.clear_selection()
@@ -207,6 +211,21 @@ class DoudizhuApp:
             speak("四带两对")
         else:
             speak("出牌")
+
+    def auto_play_human(self):
+        """倒计时超时：自动打出提示的牌；打不过则自动不要"""
+        speak("时间到，自动出牌")
+        ok, indices = self.human.find_hint(self.game)
+        if ok:
+            self.human.select_cards(indices)
+            self.do_play()
+        if self.game.phase == PHASE_PLAYING and self.game.current_player == 0:
+            # 没有能大过的牌（或出牌未成功）：自动不要；首出时do_play必成功不会到这
+            self.do_pass()
+            if self.game.current_player == 0:
+                # 兜底防死循环：仍然轮到自己就直接推进
+                self.next_ai_time = pygame.time.get_ticks() + 1500
+        self.human.clear_selection()
 
     def do_pass(self):
         success, msg = self.game.pass_turn(0)
@@ -259,7 +278,18 @@ class DoudizhuApp:
                 self.pass_display = None
 
         if self.game.phase == PHASE_ENDED:
+            self.human_deadline = None
             return
+
+        # 人类出牌30秒倒计时（放在AI逻辑之前，不受next_ai_time阻塞）
+        if self.game.phase == PHASE_PLAYING and self.game.current_player == 0:
+            if self.human_deadline is None:
+                self.human_deadline = now + 30000
+            elif now >= self.human_deadline:
+                self.human_deadline = None
+                self.auto_play_human()
+        else:
+            self.human_deadline = None
 
         if now < self.next_ai_time:
             return
@@ -472,6 +502,14 @@ class DoudizhuApp:
             y = 310
         self.draw_alarm_clock(surface, x, y)
 
+        # 人类出牌倒计时显示
+        if (cp == 0 and self.game.phase == PHASE_PLAYING and self.human_deadline):
+            remaining = max(0, (self.human_deadline - pygame.time.get_ticks() + 999) // 1000)
+            color = COLOR_TEXT_YELLOW if remaining > 10 else (255, 60, 60)
+            font = get_font(FONT_SIZE_MEDIUM)
+            text = font.render(f"{remaining}秒", True, color)
+            surface.blit(text, (x + 40, y - text.get_height() // 2))
+
     def draw_difficulty_select(self):
         mouse_pos = pygame.mouse.get_pos()
         self.difficulty_buttons = {}
@@ -481,9 +519,9 @@ class DoudizhuApp:
         self.screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, 140))
 
         hints = {
-            DIFFICULTY_EASY: "机器人会让着你，适合休闲",
+            DIFFICULTY_EASY: "对手会手下留情，适合休闲",
             DIFFICULTY_NORMAL: "正常水平，有来有回",
-            DIFFICULTY_HARD: "机器人很强，要小心",
+            DIFFICULTY_HARD: "对手很强，要小心",
         }
 
         labels = [("简单", DIFFICULTY_EASY), ("普通", DIFFICULTY_NORMAL), ("困难", DIFFICULTY_HARD)]

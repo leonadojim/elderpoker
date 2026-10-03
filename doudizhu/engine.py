@@ -209,7 +209,7 @@ class DoudizhuGame:
         self.bids[player] = score
         if score > self.current_bid:
             self.current_bid = score
-        names = ["你", "机器人A", "机器人B"]
+        names = getattr(self, "player_names", None) or ["你", "玩家A", "玩家B"]
         if score == 0:
             self.add_message(f"{names[player]} 不叫")
         else:
@@ -235,7 +235,7 @@ class DoudizhuGame:
         return False, -1
 
     def _assign_landlord(self):
-        names = ["你", "机器人A", "机器人B"]
+        names = getattr(self, "player_names", None) or ["你", "玩家A", "玩家B"]
         self.add_message(f"{names[self.landlord]} 成为地主！")
         self.player_cards[self.landlord].extend(self.bottom_cards)
         self.player_cards[self.landlord] = sort_cards(self.player_cards[self.landlord])
@@ -292,7 +292,7 @@ class DoudizhuGame:
         if is_first:
             return False, "第一手必须出牌"
 
-        names = ["你", "机器人A", "机器人B"]
+        names = getattr(self, "player_names", None) or ["你", "玩家A", "玩家B"]
         self.add_message(f"{names[player]} 不要")
         self.consecutive_pass += 1
         self.current_player = (player + 1) % 3

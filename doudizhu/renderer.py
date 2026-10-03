@@ -15,7 +15,7 @@ def draw_player_area(surface, game, player_idx, selected_indices=None, names=Non
     if selected_indices is None:
         selected_indices = set()
     if names is None:
-        names = ["你", "机器人A", "机器人B"]
+        names = ["你", "玩家A", "玩家B"]
 
     cards = game.player_cards[player_idx]
     n = len(cards)
@@ -83,7 +83,7 @@ def draw_play_area(surface, game):
     """绘制出牌区域"""
     if game.last_play:
         player, cards, hand = game.last_play
-        names = ["你", "机器人A", "机器人B"]
+        names = ["你", "玩家A", "玩家B"]
         n = len(cards)
         total_w = n * (CARD_WIDTH + 5)
 
@@ -112,7 +112,7 @@ def draw_play_area(surface, game):
 def draw_info_panel(surface, game, difficulty="简单", names=None):
     """绘制信息面板（左上角），行距不小于字号实际渲染高度，尺寸按内容自适应"""
     if names is None:
-        names = ["你", "机器人A", "机器人B"]
+        names = ["你", "玩家A", "玩家B"]
     font = get_font(FONT_SIZE_SMALL)
     y = 20
     x = 20
@@ -170,7 +170,7 @@ def draw_messages(surface, game):
 def draw_card_panel(surface, cards_list, title_text, top_y=10, landlord=-1, names=None):
     """显示三家手牌面板"""
     if names is None:
-        names = ["你", "机器人A", "机器人B"]
+        names = ["你", "玩家A", "玩家B"]
     panel_w = 1560
     panel_h = 730
     panel_x = (SCREEN_WIDTH - panel_w) // 2

@@ -40,6 +40,8 @@ class ShengjiApp:
         self.back_to_menu = False
         self.bid_auto_timer = 0  # 自动翻底牌计时
         self.human_deadline = None  # 人类出牌倒计时截止时刻（get_ticks），None表示未启用
+        self._last_cp = -1       # 上一帧的当前玩家（用于AI倒计时起点）
+        self._ai_turn_start = 0  # 当前回合开始时刻
 
     def set_status(self, text):
         self.status_text = text
@@ -277,6 +279,11 @@ class ShengjiApp:
 
     def update(self, dt):
         now = pygame.time.get_ticks()
+
+        cp_now = self.game.current_player
+        if cp_now != self._last_cp:
+            self._last_cp = cp_now
+            self._ai_turn_start = now
 
         if self.status_timer > 0:
             self.status_timer -= 1
@@ -533,18 +540,19 @@ class ShengjiApp:
                 surf = font.render(f"{remaining}秒", True, color)
                 rect = surf.get_rect(midleft=(x + 36, y))
                 self.screen.blit(surf, rect)
-            # AI 思考倒计时：在闹钟旁显示剩余秒数
+            # AI 思考倒计时：从30秒开始倒数，轮到即消失（看起来像真人在想牌）
             elif cp != 0 and self.next_ai_time > now:
-                remaining = -(-(self.next_ai_time - now) // 1000)
-                font = get_font(FONT_SIZE_MEDIUM)
-                surf = font.render(f"{remaining}秒", True, COLOR_TEXT_YELLOW)
-                if cp == 1:        # 左侧 AI：闹钟右边
-                    rect = surf.get_rect(midleft=(x + 36, y))
-                elif cp == 2:      # 顶部 AI：闹钟下方（右侧是抓分方得分区）
-                    rect = surf.get_rect(midtop=(x, y + 30))
-                else:              # 右侧 AI：闹钟左边
-                    rect = surf.get_rect(midright=(x - 36, y))
-                self.screen.blit(surf, rect)
+                remaining = max(0, 30 - (now - self._ai_turn_start) // 1000)
+                if remaining > 0:
+                    font = get_font(FONT_SIZE_MEDIUM)
+                    surf = font.render(f"{remaining}秒", True, COLOR_TEXT_YELLOW)
+                    if cp == 1:        # 左侧 AI：闹钟右边
+                        rect = surf.get_rect(midleft=(x + 36, y))
+                    elif cp == 2:      # 顶部 AI：闹钟下方（右侧是抓分方得分区）
+                        rect = surf.get_rect(midtop=(x, y + 30))
+                    else:              # 右侧 AI：闹钟左边
+                        rect = surf.get_rect(midright=(x - 36, y))
+                    self.screen.blit(surf, rect)
 
     def _draw_clock(self, x, y, radius=24):
         pygame.draw.circle(self.screen, (255, 215, 0), (x, y), radius)

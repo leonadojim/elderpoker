@@ -22,10 +22,11 @@ def draw_player_area(surface, game, player_idx, selected_indices=None, names=Non
 
     dizhu_small = None
     if landlord >= 0:
-        dizhu_path = os.path.join("assets", "logos", "dizhu.png")
+        # 绝对路径：安卓上 SDL 对相对路径会去 APK assets 里找（找不到）
+        dizhu_path = os.path.join(os.path.dirname(ASSET_DIR), "logos", "dizhu.png")
         if os.path.exists(dizhu_path):
             raw = pygame.image.load(dizhu_path).convert_alpha()
-            dizhu_small = pygame.transform.smoothscale(raw, (36, 36))
+            dizhu_small = pygame.transform.smoothscale(raw, (56, 56))
 
     if player_idx == 0:
         total_width = min(SCREEN_WIDTH - 260, n * (CARD_WIDTH + 12))
@@ -38,7 +39,7 @@ def draw_player_area(surface, game, player_idx, selected_indices=None, names=Non
                 x = (SCREEN_WIDTH - CARD_WIDTH) // 2
             draw_card(surface, card, x, y, selected=(i in selected_indices))
         if player_idx == landlord and dizhu_small:
-            surface.blit(dizhu_small, (20, y + CARD_HEIGHT - 36))
+            surface.blit(dizhu_small, (20, y + CARD_HEIGHT - 56))
         return [(start_x + i * (gap if n > 1 else 0), y) for i in range(n)]
 
     elif player_idx == 1:
@@ -48,7 +49,7 @@ def draw_player_area(surface, game, player_idx, selected_indices=None, names=Non
         name_surf = name_font.render(names[1], True, COLOR_TEXT_YELLOW)
         surface.blit(name_surf, (10, 172))
         if player_idx == landlord and dizhu_small:
-            surface.blit(dizhu_small, (10 + name_surf.get_width() + 8, 182))
+            surface.blit(dizhu_small, (10 + name_surf.get_width() + 8, 172))
         for i in range(n):
             x = 10
             y = start_y + i * gap
@@ -67,7 +68,7 @@ def draw_player_area(surface, game, player_idx, selected_indices=None, names=Non
         name_x = SCREEN_WIDTH - 10 - name_surf.get_width()
         surface.blit(name_surf, (name_x, 172))
         if player_idx == landlord and dizhu_small:
-            surface.blit(dizhu_small, (name_x - 44, 182))
+            surface.blit(dizhu_small, (name_x - 66, 172))
         for i in range(n):
             x = SCREEN_WIDTH - CARD_WIDTH - 10
             y = start_y + i * gap
@@ -200,10 +201,10 @@ def draw_card_panel(surface, cards_list, title_text, top_y=10, landlord=-1, name
 
     dizhu_img = None
     if landlord >= 0:
-        dizhu_path = os.path.join("assets", "logos", "dizhu.png")
+        dizhu_path = os.path.join(os.path.dirname(ASSET_DIR), "logos", "dizhu.png")
         if os.path.exists(dizhu_path):
             raw = pygame.image.load(dizhu_path).convert_alpha()
-            dizhu_img = pygame.transform.smoothscale(raw, (40, 40))
+            dizhu_img = pygame.transform.smoothscale(raw, (56, 56))
 
     for row, player_idx in enumerate([0, 1, 2]):
         cards = cards_list[player_idx] if player_idx < len(cards_list) else []
@@ -223,7 +224,7 @@ def draw_card_panel(surface, cards_list, title_text, top_y=10, landlord=-1, name
         surface.blit(label, (panel_x + 40 + pad_x, y))
 
         if player_idx == landlord and dizhu_img:
-            surface.blit(dizhu_img, (label_bg.right + 10, label_bg.centery - 20))
+            surface.blit(dizhu_img, (label_bg.right + 10, label_bg.centery - 28))
 
         if n > 0:
             usable_width = panel_w - 120

@@ -46,6 +46,8 @@ class DoudizhuApp:
         self.player_names = ["你", "玩家A", "玩家B"]
         self.back_to_menu = False
         self.human_deadline = None  # 人类出牌倒计时截止时刻（get_ticks），None表示未启用
+        self._last_cp = -1       # 上一帧的当前玩家（用于AI倒计时起点）
+        self._ai_turn_start = 0  # 当前回合开始时刻
         self._pick_nicknames()
 
     def set_status(self, text):
@@ -267,6 +269,12 @@ class DoudizhuApp:
 
     def update(self, dt):
         now = pygame.time.get_ticks()
+
+        cp_now = self.game.current_player
+        if cp_now != self._last_cp:
+            self._last_cp = cp_now
+            self._ai_turn_start = now
+
         if self.status_timer > 0:
             self.status_timer -= 1
         else:
@@ -511,15 +519,16 @@ class DoudizhuApp:
             color = COLOR_TEXT_YELLOW if remaining > 10 else (255, 60, 60)
             text = font.render(f"{remaining}秒", True, color)
             surface.blit(text, text.get_rect(midright=(x - 40, y)))
-        # AI 思考倒计时：在闹钟旁显示剩余秒数
+        # AI 思考倒计时：从30秒开始倒数，轮到即消失（看起来像真人在想牌）
         elif cp != 0 and self.next_ai_time > now:
-            remaining = (self.next_ai_time - now + 999) // 1000
-            text = font.render(f"{remaining}秒", True, COLOR_TEXT_YELLOW)
-            if cp == 1:
-                rect = text.get_rect(midleft=(x + 40, y))
-            else:
-                rect = text.get_rect(midright=(x - 40, y))
-            surface.blit(text, rect)
+            remaining = max(0, 30 - (now - self._ai_turn_start) // 1000)
+            if remaining > 0:
+                text = font.render(f"{remaining}秒", True, COLOR_TEXT_YELLOW)
+                if cp == 1:
+                    rect = text.get_rect(midleft=(x + 40, y))
+                else:
+                    rect = text.get_rect(midright=(x - 40, y))
+                surface.blit(text, rect)
 
     def draw_difficulty_select(self):
         mouse_pos = pygame.mouse.get_pos()

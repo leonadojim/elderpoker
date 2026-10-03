@@ -17,10 +17,11 @@ SJ_CARD_H = 108
 # 庄家图标缓存
 _dizhu_img = None
 
-def _get_dizhu_icon(size=(28, 28)):
+def _get_dizhu_icon(size=(44, 44)):
     global _dizhu_img
     if _dizhu_img is None:
-        path = os.path.join("assets", "logos", "dizhu.png")
+        # 绝对路径：安卓上 SDL 对相对路径会去 APK assets 里找（找不到）
+        path = os.path.join(os.path.dirname(ASSET_DIR), "logos", "dizhu.png")
         if os.path.exists(path):
             raw = pygame.image.load(path).convert_alpha()
             _dizhu_img = pygame.transform.smoothscale(raw, size)
@@ -135,9 +136,9 @@ def draw_player_left(surface, n, name, is_dealer=False):
 
     # 庄家图标
     if is_dealer:
-        icon = _get_dizhu_icon((28, 28))
+        icon = _get_dizhu_icon((44, 44))
         if icon:
-            surface.blit(icon, (10 + name_surf.get_width() + 6, name_y))
+            surface.blit(icon, (10 + name_surf.get_width() + 8, name_y - 4))
 
     for i in range(display_n):
         x = 10
@@ -164,9 +165,9 @@ def draw_player_right(surface, n, name, is_dealer=False):
     surface.blit(name_surf, (name_x, name_y))
 
     if is_dealer:
-        icon = _get_dizhu_icon((28, 28))
+        icon = _get_dizhu_icon((44, 44))
         if icon:
-            surface.blit(icon, (name_x - 34, name_y))
+            surface.blit(icon, (name_x - 52, name_y - 4))
 
     for i in range(display_n):
         x = SCREEN_WIDTH - small_w - 10
@@ -201,9 +202,9 @@ def draw_player_top(surface, n, name, is_dealer=False):
     surface.blit(name_surf, (name_x, name_y))
 
     if is_dealer:
-        icon = _get_dizhu_icon((28, 28))
+        icon = _get_dizhu_icon((44, 44))
         if icon:
-            surface.blit(icon, (name_x - 34, name_y))
+            surface.blit(icon, (name_x - 52, name_y - 4))
 
     count_font = get_font(FONT_SIZE_SMALL)
     count_surf = count_font.render(f"剩{n}张", True, COLOR_TEXT_YELLOW)
@@ -396,7 +397,8 @@ def draw_bottom_cards(surface, bottom_cards, center_y=240):
     if not bottom_cards:
         return
     n = len(bottom_cards)
-    total_w = n * (SJ_CARD_W + 5)
+    gap = 16  # 牌间距，老人看得清
+    total_w = n * SJ_CARD_W + (n - 1) * gap
     start_x = SCREEN_WIDTH // 2 - total_w // 2
     y = center_y
 
@@ -405,7 +407,7 @@ def draw_bottom_cards(surface, bottom_cards, center_y=240):
     surface.blit(label, (SCREEN_WIDTH // 2 - label.get_width() // 2, y - 32))
 
     for i, card in enumerate(bottom_cards):
-        x = start_x + i * (SJ_CARD_W + 5)
+        x = start_x + i * (SJ_CARD_W + gap)
         draw_card(surface, card, x, y, size=(SJ_CARD_W, SJ_CARD_H))
 
 

@@ -104,7 +104,7 @@ jobs:
           emulator-boot-timeout: 1800
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics
           script: |
-            adb install -r eldercards-1.0.0-arm64-v8a-debug.apk
+            adb install -r eldercards-*-debug.apk
             adb shell am start -n org.elderpoker.eldercards/org.kivy.android.PythonActivity
             sleep 30
             adb shell pidof org.elderpoker.eldercards && echo "APP_RUNNING" || echo "APP_NOT_RUNNING"

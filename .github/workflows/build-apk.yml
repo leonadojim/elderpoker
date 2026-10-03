@@ -55,11 +55,18 @@ jobs:
   # 编译成功后自动在安卓模拟器里启动，抓取崩溃日志
   test-on-emulator:
     needs: build
-    runs-on: macos-latest   # Apple Silicon，可硬件加速 arm64 模拟器
+    runs-on: macos-14   # Apple Silicon，可硬件加速 arm64 模拟器
     steps:
       - uses: actions/download-artifact@v4
         with:
           name: elderpoker-apk
+
+      - name: Restart adb daemon (macOS runner 上 adb 偶发僵死)
+        run: |
+          adb kill-server || true
+          sleep 2
+          adb start-server
+          adb devices
 
       - name: Run app on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
@@ -73,9 +80,13 @@ jobs:
             sleep 30
             adb shell pidof org.elderpoker.eldercards && echo "APP_RUNNING" || echo "APP_NOT_RUNNING"
             adb logcat -d > logcat.txt
+            adb pull /sdcard/Android/data/org.elderpoker.eldercards/files/app.log || true
 
       - name: Upload logcat
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: emulator-logcat
-          path: logcat.txt
+          path: |
+            logcat.txt
+            app.log

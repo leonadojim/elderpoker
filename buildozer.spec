@@ -7,7 +7,7 @@ package.name = eldercards
 package.domain = org.elderpoker
 
 source.dir = .
-source.include_exts = py,png,otf,ttf,md
+source.include_exts = py,png,otf,ttf,md,mp3,json
 source.exclude_patterns = 斗地主/*,*.zip,bin/*,.github/*
 
 version = 1.0.0

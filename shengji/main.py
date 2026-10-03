@@ -523,14 +523,27 @@ class ShengjiApp:
         if 0 <= cp < 4:
             x, y = positions[cp]
             self._draw_clock(x, y)
+            now = pygame.time.get_ticks()
             # 人类出牌倒计时：在闹钟右侧显示剩余秒数
             if (self.game.phase == PHASE_PLAYING and cp == 0
                     and self.human_deadline is not None):
-                remaining = max(0, -(-(self.human_deadline - pygame.time.get_ticks()) // 1000))
+                remaining = max(0, -(-(self.human_deadline - now) // 1000))
                 color = (255, 60, 60) if remaining <= 10 else COLOR_TEXT_YELLOW
                 font = get_font(FONT_SIZE_MEDIUM)
                 surf = font.render(f"{remaining}秒", True, color)
                 rect = surf.get_rect(midleft=(x + 36, y))
+                self.screen.blit(surf, rect)
+            # AI 思考倒计时：在闹钟旁显示剩余秒数
+            elif cp != 0 and self.next_ai_time > now:
+                remaining = -(-(self.next_ai_time - now) // 1000)
+                font = get_font(FONT_SIZE_MEDIUM)
+                surf = font.render(f"{remaining}秒", True, COLOR_TEXT_YELLOW)
+                if cp == 1:        # 左侧 AI：闹钟右边
+                    rect = surf.get_rect(midleft=(x + 36, y))
+                elif cp == 2:      # 顶部 AI：闹钟下方（右侧是抓分方得分区）
+                    rect = surf.get_rect(midtop=(x, y + 30))
+                else:              # 右侧 AI：闹钟左边
+                    rect = surf.get_rect(midright=(x - 36, y))
                 self.screen.blit(surf, rect)
 
     def _draw_clock(self, x, y, radius=24):

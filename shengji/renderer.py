@@ -69,8 +69,10 @@ def draw_player_bottom(surface, cards, selected_indices, power_eval):
     ROW_GAP = 56
     SELECT_LIFT = -15
 
-    LEFT_MARGIN = 90   # 左侧给行标签留位
-    RIGHT_MARGIN = 90
+    # 左下角"返回"按钮（x≤140）和右下角"语音"按钮（x≥1460）在底行高度范围内，
+    # 手牌区左右各让到按钮边缘 ±12
+    LEFT_MARGIN = 152
+    RIGHT_MARGIN = 152
     usable_w = SCREEN_WIDTH - LEFT_MARGIN - RIGHT_MARGIN
 
     # 按最宽行动态计算每张牌的可见宽度
@@ -97,7 +99,11 @@ def draw_player_bottom(surface, cards, selected_indices, power_eval):
 
         label_surf = label_font.render(label, True, COLOR_TEXT_YELLOW)
         label_x = max(8, start_x - label_surf.get_width() - 12)
-        label_y = y + (visible_h - label_surf.get_height()) // 2
+        if row_idx == 0:
+            # 底行标签靠上对齐，避开左下"返回"按钮（y=835 起）
+            label_y = y + 6
+        else:
+            label_y = y + (visible_h - label_surf.get_height()) // 2
         surface.blit(label_surf, (label_x, label_y))
 
         for i, (orig_idx, card) in enumerate(items):
@@ -366,9 +372,12 @@ def draw_captured_cards(surface, captured, scores):
         last_x = x0
         for r, row in enumerate(rows):
             y = row_y0 + r * row_gap
-            for i, card in enumerate(row):
+            # 抓分方从最左（最新）开始画，右边的牌后画压住左边的牌，
+            # 与庄家方压盖方向一致（右压左），且最新牌仍在最左
+            indices = range(len(row) - 1, -1, -1) if right_align else range(len(row))
+            for i in indices:
                 x = x1 - card_w - i * step if right_align else x0 + i * step
-                draw_card(surface, card, x, y, size=(card_w, card_h))
+                draw_card(surface, row[i], x, y, size=(card_w, card_h))
                 last_x = x
         if extra > 0:
             # 在末尾牌（最右一张）的左下角叠加 '+N' 角标

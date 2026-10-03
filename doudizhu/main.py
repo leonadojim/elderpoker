@@ -492,8 +492,9 @@ class DoudizhuApp:
             return
         cp = self.game.current_player
         if cp == 0:
-            x = SCREEN_WIDTH // 2
-            y = 330
+            # 人类闹钟挪到按钮行左侧（按钮行 y=560 起，start_x=570/630）
+            x = 530 if self.game.phase == PHASE_BIDDING else 595
+            y = 573
         elif cp == 1:
             x = 150 + CARD_WIDTH // 2
             y = 310
@@ -502,13 +503,23 @@ class DoudizhuApp:
             y = 310
         self.draw_alarm_clock(surface, x, y)
 
-        # 人类出牌倒计时显示
+        now = pygame.time.get_ticks()
+        font = get_font(FONT_SIZE_MEDIUM)
+        # 人类出牌倒计时显示（按钮左缘在 630，秒数放闹钟左侧避免压按钮）
         if (cp == 0 and self.game.phase == PHASE_PLAYING and self.human_deadline):
-            remaining = max(0, (self.human_deadline - pygame.time.get_ticks() + 999) // 1000)
+            remaining = max(0, (self.human_deadline - now + 999) // 1000)
             color = COLOR_TEXT_YELLOW if remaining > 10 else (255, 60, 60)
-            font = get_font(FONT_SIZE_MEDIUM)
             text = font.render(f"{remaining}秒", True, color)
-            surface.blit(text, (x + 40, y - text.get_height() // 2))
+            surface.blit(text, text.get_rect(midright=(x - 40, y)))
+        # AI 思考倒计时：在闹钟旁显示剩余秒数
+        elif cp != 0 and self.next_ai_time > now:
+            remaining = (self.next_ai_time - now + 999) // 1000
+            text = font.render(f"{remaining}秒", True, COLOR_TEXT_YELLOW)
+            if cp == 1:
+                rect = text.get_rect(midleft=(x + 40, y))
+            else:
+                rect = text.get_rect(midright=(x - 40, y))
+            surface.blit(text, rect)
 
     def draw_difficulty_select(self):
         mouse_pos = pygame.mouse.get_pos()

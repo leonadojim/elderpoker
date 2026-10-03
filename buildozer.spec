@@ -20,6 +20,10 @@ p4a.local_recipes = ./p4a-recipes
 orientation = landscape
 fullscreen = 1
 
+# Android14+的HWUI渲染线程与SDL线程模型有互斥量竞争（启动闪退根因），
+# 禁用窗口硬件加速，让SDL用自己的渲染路径
+android.extra_manifest_application_arguments = android:hardwareAccelerated="false"
+
 # 64位手机/平板 + x86_64（云模拟器测试用；pyjnius两种架构均有官方wheel）
 android.archs = arm64-v8a, x86_64
 

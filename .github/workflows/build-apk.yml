@@ -30,8 +30,9 @@ jobs:
 
       - name: Build APK (official buildozer docker image)
         run: |
-          # 缓存里的venv可能带有损坏的pip（之前失败run的残留），删掉强制重建
-          rm -rf .buildozer/android/platform/build-arm64-v8a/build/venv
+          # 缓存里的venv可能带有损坏的pip（并发写残留），删掉强制重建
+          rm -rf .buildozer/android/platform/*/build/venv
+          VENV=.buildozer/android/platform/build-arm64-v8a_x86_64/build/venv
           ok=0
           for i in 1 2 3; do
             if docker run --rm \
@@ -40,7 +41,11 @@ jobs:
               -e ANDROIDSDK=/opt/android-sdk \
               -e ANDROID_HOME=/opt/android-sdk \
               kivy/buildozer:latest android debug; then ok=1; break; fi
-            echo "== 第 $i 次尝试失败，20秒后重试 =="
+            echo "== 第 $i 次尝试失败，修复venv中的pip后重试 =="
+            if [ -f "$VENV/bin/python" ]; then
+              curl -sS https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
+              sudo "$VENV/bin/python" /tmp/get-pip.py "pip==25.2" --force-reinstall || true
+            fi
             sleep 20
           done
           [ "$ok" = 1 ]

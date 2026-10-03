@@ -115,6 +115,10 @@ jobs:
             sleep 3
             adb shell input tap 320 132   # 大厅"斗地主"按钮（虚拟坐标映射后的屏幕坐标）
             sleep 15
+            adb shell input tap 320 165   # 难度"普通"按钮
+            sleep 20
+            adb shell screencap -p /sdcard/screen2.png
+            adb pull /sdcard/screen2.png screen2.png || true
             adb shell pidof org.elderpoker.eldercards && echo "APP_RUNNING" || echo "APP_NOT_RUNNING"
             adb shell screencap -p /sdcard/screen.png
             adb pull /sdcard/screen.png screen.png || true
@@ -132,3 +136,4 @@ jobs:
             app.log
             crash.log
             screen.png
+            screen2.png

@@ -111,6 +111,8 @@ jobs:
             adb install -r eldercards-*-debug.apk
             adb shell am start -n org.elderpoker.eldercards/org.kivy.android.PythonActivity
             sleep 30
+            adb shell input tap 535 195   # 关掉系统"正在全屏显示"提示框(Got it)
+            sleep 3
             adb shell input tap 320 132   # 大厅"斗地主"按钮（虚拟坐标映射后的屏幕坐标）
             sleep 15
             adb shell pidof org.elderpoker.eldercards && echo "APP_RUNNING" || echo "APP_NOT_RUNNING"

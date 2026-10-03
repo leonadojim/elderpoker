@@ -26,7 +26,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .buildozer
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec', 'p4a-recipes/**') }}
           restore-keys: ${{ runner.os }}-buildozer-
 
       - name: Ensure Android SDK platform 33 on runner
@@ -43,6 +43,10 @@ jobs:
         run: |
           # 缓存里的venv可能带有损坏的pip（并发写残留），删掉强制重建
           rm -rf .buildozer/android/platform/*/build/venv
+          # 配方变更时强制重建对应包和打包产物（p4a按已安装状态跳过）
+          rm -rf .buildozer/android/platform/*/build/other_builds/pygame
+          rm -rf .buildozer/android/platform/*/build/python-installs/*/*/pygame
+          rm -rf .buildozer/android/platform/*/dists
           VENV=.buildozer/android/platform/build-arm64-v8a_x86_64/build/venv
           ok=0
           for i in 1 2 3; do

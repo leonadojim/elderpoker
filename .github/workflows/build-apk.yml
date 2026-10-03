@@ -111,7 +111,11 @@ jobs:
             adb install -r eldercards-*-debug.apk
             adb shell am start -n org.elderpoker.eldercards/org.kivy.android.PythonActivity
             sleep 30
+            adb shell input tap 320 132   # 大厅"斗地主"按钮（虚拟坐标映射后的屏幕坐标）
+            sleep 15
             adb shell pidof org.elderpoker.eldercards && echo "APP_RUNNING" || echo "APP_NOT_RUNNING"
+            adb shell screencap -p /sdcard/screen.png
+            adb pull /sdcard/screen.png screen.png || true
             adb logcat -d > logcat.txt
             adb shell run-as org.elderpoker.eldercards cat files/app.log > app.log 2>/dev/null || true
             adb shell run-as org.elderpoker.eldercards cat files/crash.log > crash.log 2>/dev/null || true
@@ -125,3 +129,4 @@ jobs:
             logcat.txt
             app.log
             crash.log
+            screen.png

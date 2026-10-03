@@ -1,3 +1,4 @@
+import os
 import pygame
 
 # ==================== 屏幕设置（老人专用大屏幕）====================
@@ -37,7 +38,8 @@ FONT_SIZE_SMALL = 28
 FONT_SIZE_CARD = 32
 
 # ==================== 素材路径 ====================
-ASSET_DIR = "assets/cards"
+# 必须用绝对路径：安卓上 SDL 对相对路径会去 APK assets 里找（找不到），绝对路径才走文件系统
+ASSET_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "cards")
 
 # ==================== 难度 ====================
 DIFFICULTY_EASY = "easy"

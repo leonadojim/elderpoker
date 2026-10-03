@@ -57,6 +57,10 @@ class Pygame2Recipe(CompiledComponentsPythonRecipe):
                 png_includes="-I"+png_inc_dir,
                 freetype_includes=""
             )
+            # pygame 2.6.1 的 Android 模板漏了 SIMD 源文件，导致运行时 dlopen 缺符号
+            setup_file = setup_file.replace(
+                "surface src_c/surface.c",
+                "surface src_c/simd_blitters_sse2.c src_c/simd_blitters_avx2.c src_c/surface.c")
             open("Setup", "w").write(setup_file)
 
     def get_recipe_env(self, arch):
